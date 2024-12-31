@@ -8,7 +8,7 @@ certManager:
     solvers:
       - dns01:
           cloudflare:
-            email: ${cloudflareApiEmail}
+            email: {{cloudflareApiEmail}}
             apiTokenSecretRef:
               name: cloudflare-api-token-secret
               key: api-token
@@ -272,8 +272,8 @@ externalDns:
     provider: cloudflare
     cloudflare:
       proxied: true
-      email: ${cloudflareApiEmail}
-      apiToken: "${cloudflareApiToken}"
+      email: {{cloudflareApiEmail}}
+      apiToken: "{{cloudflareApiToken}}"
     sources:
       - ingress
 grafana:
@@ -281,9 +281,9 @@ grafana:
   targetRevision: "~8.8.1"
   datasourceAuth:
     cortex:
-      password: "${grafanaDatasourceCortexPassword}"
+      password: "{{grafanaDatasourceCortexPassword}}"
     loki:
-      password: "${grafanaDatasourceLokiPassword}"
+      password: "{{grafanaDatasourceLokiPassword}}"
   extraDatasources:
     - name: ht0-k8s Prometheus
       type: prometheus
@@ -292,7 +292,7 @@ grafana:
       access: proxy
       isDefault: false
   values:
-    adminPassword: "${grafanaAdminPassword}"
+    adminPassword: "{{grafanaAdminPassword}}"
     serviceAccount:
       create: true
       name: grafana
@@ -309,7 +309,7 @@ grafana:
           - uid: catalyst-squad-slack
             type: slack
             settings:
-              url: "${grafanaNotifierCatalystCommunityAlerts}"
+              url: "{{grafanaNotifierCatalystCommunityAlerts}}"
               title: |
                 {{`{{ template "custom_slack_title" . }}`}}
               text: |
@@ -385,7 +385,7 @@ linkerd:
             Ak8CIQC+JIcDwnBO2YcMoO2NYXU5GjHmXWb7WpOgn8hHqliZqw==
             -----END CERTIFICATE-----
           keyPEM: |
-            ${linkerdIssuerKeyPEM}
+            {{linkerdIssuerKeyPEM}}
 loki:
   enabled: true
   targetRevision: "~0.80.0"
@@ -523,7 +523,7 @@ promtail:
             cluster: ht0-k8s
           basic_auth:
             username: ht0-k8s
-            password: "${promtailBasicAuthPassword}"
+            password: "{{promtailBasicAuthPassword}}"
 sentry:
   enabled: false
 storageClasses:

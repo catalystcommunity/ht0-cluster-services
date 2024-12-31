@@ -33,7 +33,7 @@ prometheus:
     # allow service monitors to be selected from all namespaces and labels
     serviceMonitorSelectorNilUsesHelmValues: false
     externalLabels:
-      cluster: ${clusterName}
+      cluster: {{clusterName}}
     remoteWrite:
       - url: http://cortex-nginx.cortex.svc.cluster.local/api/v1/push
         basicAuth:
