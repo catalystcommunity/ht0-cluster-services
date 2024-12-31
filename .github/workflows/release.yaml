@@ -24,6 +24,7 @@ jobs:
         env:
           CI_HOST_ADDRESS: ${{ secrets.CI_HOST_ADDRESS }}
           CI_HOST_PORT: ${{ secrets.CI_HOST_PORT }}
+          CI_SSH_KEY: ${{ secrets.CI_SSH_KEY }}
           CLOUDFLARE_API_EMAIL: ${{ secrets.CLOUDFLARE_API_EMAIL }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           GRAFANA_CORTEXT_PASSWORD: ${{ secrets.GRAFANA_CORTEXT_PASSWORD }}
