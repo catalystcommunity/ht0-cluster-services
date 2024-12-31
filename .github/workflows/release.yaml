@@ -1,0 +1,34 @@
+name: Release
+on:
+  pull_request:
+    types:
+      - closed
+    branches:
+      - main
+    paths:
+      - 'ci/**'
+      - 'helm_values/**'
+      - 'argocd-app.yaml'
+jobs:
+  release:
+    name: Release Services
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Do CI
+        env:
+          CI_HOST_ADDRESS: ${{ secrets.CI_HOST_ADDRESS }}
+          CI_HOST_PORT: ${{ secrets.CI_HOST_PORT }}
+          CLOUDFLARE_API_EMAIL: ${{ secrets.CLOUDFLARE_API_EMAIL }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          GRAFANA_CORTEXT_PASSWORD: ${{ secrets.GRAFANA_CORTEXT_PASSWORD }}
+          GRAFANA_LOKI_PASSWORD: ${{ secrets.GRAFANA_LOKI_PASSWORD }}
+          GRAFANA_ADMIN_PASSWORD: ${{ secrets.GRAFANA_ADMIN_PASSWORD }}
+          CATALYST_COMMUNITY_ALERTS_URL: ${{ secrets.CATALYST_COMMUNITY_ALERTS_URL }}
+          LINKERD_ISSUER_KEY_PEM: ${{ secrets.LINKERD_ISSUER_KEY_PEM }}
+          PROMTAIL_PASS: ${{ secrets.PROMTAIL_PASS }}
+          CLUSTER_NAME: "ht0-k8s"
+          REACTORCIDE_JOB_REPO_URL: git@github.com:catalystcommunity/ht0-cluster-services.git
+          REACTORCIDE_JOB_ENTRYPOINT: ci/reactorcide-job.sh
+        run: |
+          ci/release.sh

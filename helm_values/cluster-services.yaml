@@ -1,0 +1,545 @@
+certManager:
+  enabled: true
+  targetRevision: "~1.16.2"
+  clusterIssuer:
+    acme:
+      staging: false
+      email: catalystcommunity@todandlorna.com
+    solvers:
+      - dns01:
+          cloudflare:
+            email: ${cloudflareApiEmail}
+            apiTokenSecretRef:
+              name: cloudflare-api-token-secret
+              key: api-token
+  wildcardCert:
+    commonName: 'internal-service.com'
+    dnsNames:
+      - 'internal-service.com'
+      - '*.internal-service.com'
+      - 'opsisdead.com'
+      - '*.opsisdead.com'
+    organizations:
+      - Catalyst Community
+clusterAutoscaler:
+  # This is bare metal, no autoscaler yet
+  enabled: false
+contour:
+  # This is bare metal, using kube-vip to port everything to this
+  enabled: true
+  targetRevision: "~19.4.0"
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+  values:
+    metrics:
+      serviceMonitor:
+        enabled: true
+    envoy:
+      shutdownManager:
+        resources:
+          requests:
+            cpu: 10m
+      resources:
+        requests:
+          cpu: 10m
+          memory: 50M
+      autoscaling:
+        enabled: false
+        minReplicas: 1
+        maxReplicas: 1
+        targetCPU: 70%
+cortex:
+  enabled: true
+  targetRevision: "~2.4.0"
+  basicAuthSecret:
+    htpasswd: |
+      grafana:$2y$05$Sr0FfQq0GGP3zHcsuyNQbObhxsjXUfaVv4eR47QAN8RaZ31hjUkhO
+      ht0-k8s:$2y$05$62L3VeSY.PYZumHwgnCQp.YFTn.qx7vh9qV7kV1hLxcI9mvchp7pu
+      todpunk:$2y$05$TN5T1NdOs8wjfgzNSoQq6.gco0W7QkPEhaxOPfinHPRMUNEjs9L1K
+    ingress:
+      annotations:
+        projectcontour.io/tls-cert-namespace: cert-manager
+      hosts:
+        - host: metrics.internal-service.com
+          paths:
+            - /
+      tls:
+        - secretName: wildcard-certificate
+          hosts:
+            - metrics.internal-service.com 
+    config:
+      blocks_storage:
+        backend: s3
+        s3:
+          bucket_name: ht0-metrics-bucket
+          endpoint: s3.us-west-000.backblazeb2.com
+      ruler_storage:
+        backend: s3
+        s3:
+          bucket_name: ht0-metrics-bucket
+          endpoint: s3.us-west-000.backblazeb2.com
+      alertmanager_storage:
+        backend: s3
+        s3: 
+          bucket_name: ht0-metrics-bucket
+          endpoint: s3.us-west-000.backblazeb2.com
+    alertmanager:
+      env:
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: metricsbucketaccess
+              key: access_key_id
+              optional: false 
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: metricsbucketaccess
+              key: secret_access_key
+              optional: false
+      resources:
+        requests:
+          cpu: 10m
+          memory: 50Mi
+    distributor:
+      resources:
+        requests:
+          cpu: 10m
+          memory: 100Mi
+      autoscaling:
+        enabled: true
+        minReplicas: 2
+        maxReplicas: 6
+        targetCPUUtilizationPercentage: 80
+        targetMemoryUtilizationPercentage: 80
+    ingester:
+      resources:
+        requests:
+          cpu: 10m
+          memory: 2Gi
+      autoscaling:
+        enabled: true
+        minReplicas: 3
+        maxReplicas: 9
+        targetMemoryUtilizationPercentage: 80
+      persistentVolume:
+        size: 20Gi
+    ruler:
+      env:
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: metricsbucketaccess
+              key: access_key_id
+              optional: false 
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: metricsbucketaccess
+              key: secret_access_key
+              optional: false
+      resources:
+        requests:
+          cpu: 10m
+          memory: 50Mi
+    querier:
+      env:
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: metricsbucketaccess
+              key: access_key_id
+              optional: false 
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: metricsbucketaccess
+              key: secret_access_key
+              optional: false
+      resources: 
+        requests:
+          cpu: 10m
+          memory: 500Mi
+      autoscaling:
+        enabled: true
+        minReplicas: 2
+        maxReplicas: 6
+        targetCPUUtilizationPercentage: 80
+        targetMemoryUtilizationPercentage: 80
+    query_frontend:
+      replicas: 2
+      resources:
+        requests:
+          cpu: 10m
+          memory: 100Mi
+    nginx:
+      resources:
+        requests:
+          cpu: 10m
+          memory: 100Mi
+      autoscaling:
+        enabled: true
+        minReplicas: 2
+        maxReplicas: 6
+        targetCPUUtilizationPercentage: 80
+        targetMemoryUtilizationPercentage: 80
+    store_gateway:
+      env:
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: metricsbucketaccess
+              key: access_key_id
+              optional: false 
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: metricsbucketaccess
+              key: secret_access_key
+              optional: false
+      resources:
+        requests:
+          cpu: 10m
+          memory: 250Mi
+      persistentVolume:
+        size: 20Gi
+    compactor:
+      enabled: true
+      replicas: 1
+      serviceMonitor:
+        enabled: true
+      resources:
+        requests:
+          cpu: 10m
+          memory: 500Mi
+      persistentVolume:
+        size: 20Gi
+    memcached-blocks-index:
+      replicaCount: 2
+      resources:
+        requests:
+          cpu: 10m
+          memory: 256Mi
+      extraEnv:
+        - name: MEMCACHED_CACHE_SIZE
+          value: "256"
+        - name: MEMCACHED_MAX_CONNECTIONS
+          value: "1024"
+        - name: MEMCACHED_THREADS
+          value: "4"
+    memcached-blocks:
+      replicaCount: 2
+      resources:
+        requests:
+          cpu: 10m
+          memory: 256Mi
+      extraEnv:
+        - name: MEMCACHED_CACHE_SIZE
+          value: "256"
+        - name: MEMCACHED_MAX_CONNECTIONS
+          value: "1024"
+        - name: MEMCACHED_THREADS
+          value: "4"
+    memcached-blocks-metadata:
+      replicaCount: 2
+      resources:
+        requests:
+          cpu: 10m
+          memory: 256Mi
+      extraEnv:
+        - name: MEMCACHED_CACHE_SIZE
+          value: "256"
+        - name: MEMCACHED_MAX_CONNECTIONS
+          value: "1024"
+        - name: MEMCACHED_THREADS
+          value: "4"
+externalDns:
+  enabled: true
+  targetRevision: "~8.7.0"
+  values:
+    provider: cloudflare
+    cloudflare:
+      proxied: true
+      email: ${cloudflareApiEmail}
+      apiToken: "${cloudflareApiToken}"
+    sources:
+      - ingress
+grafana:
+  enabled: true
+  targetRevision: "~8.8.1"
+  datasourceAuth:
+    cortex:
+      password: "${grafanaDatasourceCortexPassword}"
+    loki:
+      password: "${grafanaDatasourceLokiPassword}"
+  extraDatasources:
+    - name: ht0-k8s Prometheus
+      type: prometheus
+      uid: ht0-k8s-prometheus
+      url:  http://kube-prometheus-stack-prometheus.kube-prometheus-stack:9090/
+      access: proxy
+      isDefault: false
+  values:
+    adminPassword: "${grafanaAdminPassword}"
+    serviceAccount:
+      create: true
+      name: grafana
+    grafana.ini:
+      server:
+        root_url: https://grafana.internal-service.com
+    alerting:
+      contactpoints.yaml:
+        apiVersion: 1
+        contactPoints:
+        - orgId: 1
+          name: engineering
+          receivers:
+          - uid: catalyst-squad-slack
+            type: slack
+            settings:
+              url: "${grafanaNotifierCatalystCommunityAlerts}"
+              title: |
+                {{`{{ template "custom_slack_title" . }}`}}
+              text: |
+                {{`{{ template "custom_slack_text" . }}`}}
+      notification-policies.yaml:
+        apiVersion: 1
+        policies:
+        - receiver: engineering
+          group_by: ['alertname']
+          matchers: []
+          mute_time_intervals: []
+          group_wait: 60s
+          group_interval: 5m
+          repeat_interval: 24h
+      notifier-templates.yaml:
+        apiVersion: 1
+        templates:
+          - name: custom_slack_title
+            template: |
+              {{`[{{- .Status | toUpper -}}{{- if eq .Status "firing" }} x {{ .Alerts.Firing | len -}}{{- end }}] | {{ .ht0-k8sLabels.alertname -}}`}}
+          - name: custom_slack_text
+            template: |
+              {{`{{- range .Alerts }}`}}
+              {{`*Status*: {{ .Status }}`}}
+              {{`{{- if gt (len .Annotations) 0 }}`}}
+              {{`*Description*: {{ .Annotations.description }}`}}
+              {{`{{- end }}`}}
+              {{`*Labels*: {{ range .Labels.SortedPairs }}`}} `{{`{{ .Name }}: {{ .Value }}`}}` {{`{{ end }}`}}
+              {{`{{- "\n\n" -}}`}}
+              {{`{{- end }}`}}
+    ingress:
+      annotations:
+        projectcontour.io/tls-cert-namespace: cert-manager
+      hosts:
+        - grafana.internal-service.com
+      tls:
+        - secretName: wildcard-certificate
+          hosts:
+            - grafana.internal-service.com 
+    resources:
+      requests:
+        cpu: 10m
+        memory: 500Mi
+linkerd:
+  targetRevision: "~2.16.0"
+  values:
+    installNamespace: false
+    identityTrustAnchorsPEM: |
+      -----BEGIN CERTIFICATE-----
+      MIIBpDCCAUugAwIBAgIUF7LqzWejblX6zVtdo3gsNrX+1OUwCgYIKoZIzj0EAwIw
+      JTEjMCEGA1UEAwwacm9vdC5saW5rZXJkLmNsdXN0ZXIubG9jYWwwIBcNMjQxMjE2
+      MDE0NjU0WhgPMjEyNDExMjIwMTQ2NTRaMCkxJzAlBgNVBAMMHmlkZW50aXR5Lmxp
+      bmtlcmQuY2x1c3Rlci5sb2NhbDBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABBIS
+      fagU4sJ1L5IBlUm+ORm3+aTuHj0WZiQxhtt4mHuvqnuLWhc432j8+WJ25FYFCE6U
+      s9PveZLCtwWimgCyncOjUzBRMB0GA1UdDgQWBBSoAy1GG7QTcWi4wn/aMUkNBNtZ
+      tDAfBgNVHSMEGDAWgBTvNlsQwTDh66Y3RqmFNTpW7dQaCDAPBgNVHRMBAf8EBTAD
+      AQH/MAoGCCqGSM49BAMCA0cAMEQCIFXbUhQU5cjRuVG2ViBwFO9XjvAITwtfSYXt
+      GPfFK52UAiBklykKvTZuRZ8vLR+UZEV/VilvMi0keHMrrn2gnTXsRA==
+      -----END CERTIFICATE-----
+    identity:
+      issuer:
+        tls:
+          crtPEM: |
+            -----BEGIN CERTIFICATE-----
+            MIIBoTCCAUegAwIBAgIUL311XSjJwBm5EC52j53410n3YMAwCgYIKoZIzj0EAwIw
+            JTEjMCEGA1UEAwwacm9vdC5saW5rZXJkLmNsdXN0ZXIubG9jYWwwIBcNMjQxMjE2
+            MDE0NTM4WhgPMjEyNDExMjIwMTQ1MzhaMCUxIzAhBgNVBAMMGnJvb3QubGlua2Vy
+            ZC5jbHVzdGVyLmxvY2FsMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEj7i2uvTd
+            qXN96AVwPxNASIPn6Fh3Eb7DP+N+wJW3Rop0mQ3t3Xovqk9fZS9mhb8r5DtQrzwL
+            fqhnwJ6qMrENzaNTMFEwHQYDVR0OBBYEFO82WxDBMOHrpjdGqYU1Olbt1BoIMB8G
+            A1UdIwQYMBaAFO82WxDBMOHrpjdGqYU1Olbt1BoIMA8GA1UdEwEB/wQFMAMBAf8w
+            CgYIKoZIzj0EAwIDSAAwRQIgXylSbGTv8E14NPtf4Z9FfAJwd6vxygxKQu8Dc6Ox
+            Ak8CIQC+JIcDwnBO2YcMoO2NYXU5GjHmXWb7WpOgn8hHqliZqw==
+            -----END CERTIFICATE-----
+          keyPEM: |
+            ${linkerdIssuerKeyPEM}
+loki:
+  enabled: true
+  targetRevision: "~0.80.0"
+  basicAuthSecret:
+    htpasswd: |
+      grafana:$2y$17$7Su4aN2amhinkHUXdITFIuTijsIJl1O9Jb/KjKO5MZEtSvCOio4lm
+      ht0-k8s:$2y$17$w7F9EEACBVzX5Qt56PtM..4i8zFtdXTzTvEDB.Z0QNSV42XmaksM2
+  values:
+    loki:
+      structuredConfig:
+        storage_config:
+          aws:
+            s3: s3://s3.us-west-000.backblazeb2.com
+            bucketnames: ht0-metrics-bucket
+    gateway:
+      ingress:
+        annotations:
+          projectcontour.io/tls-cert-namespace: cert-manager
+        hosts:
+          - host: logs.internal-service.com
+            paths:
+              - path: /
+                pathType: Prefix
+        tls:
+          - secretName: wildcard-certificate
+            hosts:
+              - logs.internal-service.com 
+      autoscaling:
+        enabled: false
+        minReplicas: 1
+        maxReplicas: 3
+        targetCPUUtilizationPercentage: 80
+        targetMemoryUtilizationPercentage: 80
+      resources:
+        requests:
+          cpu: 10m
+          memory: 50Mi
+    ingester:
+      extraEnv:
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: metricsbucketaccess
+              key: access_key_id
+              optional: false 
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: metricsbucketaccess
+              key: secret_access_key
+              optional: false
+      replicas: 1
+      maxUnavailable: 1
+      resources:
+        requests:
+
+          cpu: 10m
+          memory: 500Mi
+    distributor:
+      autoscaling:
+        enabled: false
+        minReplicas: 1
+        maxReplicas: 3
+        targetCPUUtilizationPercentage: 80
+        targetMemoryUtilizationPercentage: 80
+      resources:
+        requests:
+          cpu: 10m
+          memory: 100Mi
+    querier:
+      extraEnv:
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: metricsbucketaccess
+              key: access_key_id
+              optional: false 
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: metricsbucketaccess
+              key: secret_access_key
+              optional: false
+      autoscaling:
+        enabled: false
+        minReplicas: 1
+        maxReplicas: 3
+        targetCPUUtilizationPercentage: 80
+        targetMemoryUtilizationPercentage: 80
+      resources:
+        requests:
+          cpu: 10m
+          memory: 150Mi
+    queryFrontend:
+      autoscaling:
+        enabled: false
+        minReplicas: 1
+        maxReplicas: 3
+        targetCPUUtilizationPercentage: 80
+        targetMemoryUtilizationPercentage: 80
+      resources:
+        requests:
+          cpu: 10m
+          memory: 50Mi
+    compactor:
+      resources:
+        requests:
+          cpu: 10m
+          memory: 100Mi
+    ruler:
+      enabled: false
+    indexGateway:
+      resources:
+        requests:
+          cpu: 10m
+          memory: 250Mi
+metricsServer:
+  enabled: true
+  targetRevision: "~6.2.4"
+  values:
+    extraArgs:
+      - --kubelet-insecure-tls=true
+      - --kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname
+prometheusBlackboxExporter:
+  enabled: false
+promtail:
+  enabled: true
+  targetRevision: "~6.16.6"
+  values:
+    config:
+      lokiAddress: http://loki-distributed-gateway.loki/loki/api/v1/push
+      snippets:
+        extraClientConfigs: |
+          external_labels:
+            cluster: ht0-k8s
+          basic_auth:
+            username: ht0-k8s
+            password: "${promtailBasicAuthPassword}"
+sentry:
+  enabled: false
+storageClasses:
+  aws:
+    gp2:
+      enabled: false
+    encryptedGp2:
+      enabled: false
+  gke:
+    ssd:
+      enabled: false
+    standard:
+      enabled: false
+velero:
+  enabled: false
+awsEcrCreds:
+  enabled: false
+zalandoPostgresOperator:
+  enabled: true
