@@ -21,8 +21,8 @@ echo "REACTORCIDE_JOB_REPO_URL=${REACTORCIDE_JOB_REPO_URL}" >> runnerenv.sh
 touch jobenv.sh
 echo "REACTORCIDE_JOB_ENTRYPOINT=${REACTORCIDE_JOB_ENTRYPOINT}" >> jobenv.sh
 
-touch sshkey
-chmod 600 sshkey
-echo "${CI_SSH_KEY}" >> sshkey
-scp -i sshkey -P ${CI_HOST_PORT} runnerenv.sh jobenv.sh ${CI_HOST_ADDRESS}
-ssh ${CI_HOST_ADDRESS} -i sshkey -p ${CI_HOST_PORT} external-root.sh
+touch cisshkey
+echo "${CI_SSH_KEY}" >> cisshkey
+chmod 600 cisshkey
+scp -i cisshkey -P ${CI_HOST_PORT} runnerenv.sh jobenv.sh ${CI_HOST_ADDRESS}
+ssh ${CI_HOST_ADDRESS} -i cisshkey -p ${CI_HOST_PORT} external-root.sh
