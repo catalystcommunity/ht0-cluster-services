@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -e
+set -x
 CLUSTER_SERVICES_FILE="./helm_values/cluster-services.yaml"
 PROMETHEUS_FILE="./helm_values/prometheus.yaml"
 
