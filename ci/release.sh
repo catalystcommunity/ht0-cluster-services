@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+set -e
 CLUSTER_SERVICES_FILE="./helm_values/cluster-services.yaml"
 PROMETHEUS_FILE="./helm_values/prometheus.yaml"
 
@@ -22,6 +23,6 @@ echo "REACTORCIDE_JOB_ENTRYPOINT=${REACTORCIDE_JOB_ENTRYPOINT}" >> jobenv.sh
 
 touch sshkey
 chmod 600 sshkey
-echo "${CI_SSH_KEY}" > sshkey
+echo "${CI_SSH_KEY}" >> sshkey
 scp -i sshkey -P ${CI_HOST_PORT} runnerenv.sh jobenv.sh ${CI_HOST_ADDRESS}
 ssh ${CI_HOST_ADDRESS} -i sshkey -p ${CI_HOST_PORT} external-root.sh
