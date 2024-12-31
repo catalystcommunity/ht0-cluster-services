@@ -24,5 +24,6 @@ echo "REACTORCIDE_JOB_ENTRYPOINT=${REACTORCIDE_JOB_ENTRYPOINT}" >> jobenv.sh
 touch cisshkey
 echo "${CI_SSH_KEY}" >> cisshkey
 chmod 600 cisshkey
-scp -i cisshkey -P ${CI_HOST_PORT} runnerenv.sh jobenv.sh ${CI_HOST_ADDRESS}
+scp -i cisshkey -P ${CI_HOST_PORT} runnerenv.sh jobenv.sh ${CI_HOST_ADDRESS}:~/
+# external-root.sh should already exist per reactorcide requirements
 ssh ${CI_HOST_ADDRESS} -i cisshkey -p ${CI_HOST_PORT} external-root.sh
