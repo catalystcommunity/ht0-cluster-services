@@ -27,4 +27,4 @@ echo "${CI_SSH_KEY}" >> cisshkey
 chmod 600 cisshkey
 scp -i cisshkey -o "StrictHostKeyChecking=no" -P ${CI_HOST_PORT} runnerenv.sh jobenv.sh ${CI_HOST_USER}@${CI_HOST_ADDRESS}:~/
 # external-root.sh should already exist per reactorcide requirements
-ssh ${CI_HOST_ADDRESS} -i cisshkey -o "StrictHostKeyChecking=no" -p ${CI_HOST_PORT} ./external-root.sh
+ssh ${CI_HOST_USER}@${CI_HOST_ADDRESS} -i cisshkey -o "StrictHostKeyChecking=no" -p ${CI_HOST_PORT} ./external-root.sh

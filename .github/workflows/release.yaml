@@ -26,6 +26,7 @@ jobs:
           CI_HOST_USER: ${{ secrets.CI_HOST_USER }}
           CI_HOST_PORT: ${{ secrets.CI_HOST_PORT }}
           CI_SSH_KEY: ${{ secrets.CI_SSH_KEY }}
+          CI_KUBECONFIG: ${{ secrets.CI_KUBECONFIG }}
           CLOUDFLARE_API_EMAIL: ${{ secrets.CLOUDFLARE_API_EMAIL }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           GRAFANA_CORTEXT_PASSWORD: ${{ secrets.GRAFANA_CORTEXT_PASSWORD }}
