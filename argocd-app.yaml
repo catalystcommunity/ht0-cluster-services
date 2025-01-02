@@ -21,90 +21,90 @@ spec:
     targetRevision: 7.7.11
     helm:
       releaseName: argo
-    values: |
-      configs: 
-        repositories:
-          catalyst-helm: 
-            name: "Catalyst Community Public Github Helm Repository"
-            type: "helm"
-            url: "https://raw.githubusercontent.com/catalystcommunity/charts/main"
-            # If this was private we need this.
-            #username: "${helmRepoPat}"
-            #password: "${helmRepoPat}"
-          argo:
-            name: "ArgoCD Helm Repository"
-            type: "helm"
-            url: "https://argoproj.github.io/argo-helm"
+      values: |
+        configs: 
+          repositories:
+            catalyst-helm: 
+              name: "Catalyst Community Public Github Helm Repository"
+              type: "helm"
+              url: "https://raw.githubusercontent.com/catalystcommunity/charts/main"
+              # If this was private we need this.
+              #username: "${helmRepoPat}"
+              #password: "${helmRepoPat}"
+            argo:
+              name: "ArgoCD Helm Repository"
+              type: "helm"
+              url: "https://argoproj.github.io/argo-helm"
 
-      controller:
-        logLevel: error
-        args:
-          appResyncPeriod: "30"
-        extraArgs:
-          - --app-state-cache-expiration=1s
-          - --default-cache-expiration=1s
-          - --application-namespaces="argo*"
-        metrics:
-          enabled: true
-          serviceMonitor:
-
+        controller:
+          logLevel: error
+          args:
+            appResyncPeriod: "30"
+          extraArgs:
+            - --app-state-cache-expiration=1s
+            - --default-cache-expiration=1s
+            - --application-namespaces="argo*"
+          metrics:
             enabled: true
-        resources:
-          requests:
-            cpu: 300m
-            memory: 750Mi
+            serviceMonitor:
 
-      dex:
-        # disable dex for now because we don't do authentication to argocd at all
-        enabled: false
+              enabled: true
+          resources:
+            requests:
+              cpu: 300m
+              memory: 750Mi
 
-      redis:
-        metrics:
-          enabled: true
-          image:
-            # specify docker registry because the quay default doesn't work
-            repository: bitnami/redis-exporter
-          serviceMonitor:
+        dex:
+          # disable dex for now because we don't do authentication to argocd at all
+          enabled: false
+
+        redis:
+          metrics:
             enabled: true
-        resources:
-          requests:
-            cpu: 100m
-            memory: 500Mi
+            image:
+              # specify docker registry because the quay default doesn't work
+              repository: bitnami/redis-exporter
+            serviceMonitor:
+              enabled: true
+          resources:
+            requests:
+              cpu: 100m
+              memory: 500Mi
 
-      server:
-        logLevel: error
-        config:
+        server:
+          logLevel: error
+          config:
 
-          timeout.reconciliation: 30s
-        extraArgs:
-          - --app-state-cache-expiration=1s
-          - --default-cache-expiration=1s
-          - --application-namespaces="argo*"
-        metrics:
-          enabled: true
-          serviceMonitor:
+            timeout.reconciliation: 30s
+          extraArgs:
+            - --app-state-cache-expiration=1s
+            - --default-cache-expiration=1s
+            - --application-namespaces="argo*"
+          metrics:
             enabled: true
-        resources:
+            serviceMonitor:
+              enabled: true
+          resources:
 
-          requests:
-            cpu: 100m
-            memory: 500Mi
+            requests:
+              cpu: 100m
+              memory: 500Mi
 
-      repoServer:
-        logLevel: error
-        extraArgs:
-          - --repo-cache-expiration=1s
-          - --default-cache-expiration=1s
-          - --revision-cache-expiration=1s
-        metrics:
-          enabled: true
-          serviceMonitor:
+        repoServer:
+          logLevel: error
+          extraArgs:
+            - --repo-cache-expiration=1s
+            - --default-cache-expiration=1s
+            - --revision-cache-expiration=1s
+          metrics:
             enabled: true
-        resources:
-          requests:
-            cpu: 300m
-            memory: 750Mi
-      applicationSet:
-        # disable the applicationSet controller because we don't use it and it ends
-        # up in a crashloop due to cache syncing timeouts
-        enabled: false
+            serviceMonitor:
+              enabled: true
+          resources:
+            requests:
+              cpu: 300m
+              memory: 750Mi
+        applicationSet:
+          # disable the applicationSet controller because we don't use it and it ends
+          # up in a crashloop due to cache syncing timeouts
+          enabled: false
