@@ -3,10 +3,10 @@
 echo "I am in CI in the innner root job script"
 set -x
 
-PLATFORM_SERVICES_TEMPLATE="${REACTORCIDE_REPOROOT}/helm_values/platform-services.yaml"
-PLATFORM_SERVICES_FILE="${REACTORCIDE_REPOROOT}/helm_values/ciresult_platform-services.yaml"
-PROMETHEUS_TEMPLATE="${REACTORCIDE_REPOROOT}/helm_values/prometheus.yaml"
-PROMETHEUS_FILE="${REACTORCIDE_REPOROOT}/helm_values/ciresult_prometheus.yaml"
+export PLATFORM_SERVICES_TEMPLATE="${REACTORCIDE_REPOROOT}/helm_values/platform-services.yaml"
+export PLATFORM_SERVICES_FILE="${REACTORCIDE_REPOROOT}/helm_values/ciresult_platform-services.yaml"
+export PROMETHEUS_TEMPLATE="${REACTORCIDE_REPOROOT}/helm_values/prometheus.yaml"
+export PROMETHEUS_FILE="${REACTORCIDE_REPOROOT}/helm_values/ciresult_prometheus.yaml"
 
 mkdir -p .kube
 touch .kube/config
