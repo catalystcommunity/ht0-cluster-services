@@ -47,7 +47,7 @@ def validate_yaml(file_path):
 
 def main():
     validSetup = True
-    if None in PLATFORM_REPLACEMENTS.values() + PROMETHEUS_REPLACEMENTS.values():
+    if None in list(PLATFORM_REPLACEMENTS.values()) + list(PROMETHEUS_REPLACEMENTS.values()):
         print("Error: Missing environment variables.")
         validSetup = False
         for key, value in PLATFORM_REPLACEMENTS.items() + PROMETHEUS_REPLACEMENTS.items():
