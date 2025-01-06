@@ -22,21 +22,10 @@ helm repo update
 kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.16.2/cert-manager.crds.yaml
 kubectl apply -f https://raw.githubusercontent.com/projectcontour/contour/v1.30.1/examples/contour/01-crds.yaml
 
-sed -i 's/{{cloudflareApiEmail}}/${CLOUDFLARE_API_EMAIL}/g' ${PLATFORM_SERVICES_FILE}
-sed -i 's/{{cloudflareApiToken}}/${CLOUDFLARE_API_TOKEN}/g' ${PLATFORM_SERVICES_FILE}
-sed -i 's/{{grafanaDatasourceCortexPassword}}/${GRAFANA_CORTEXT_PASSWORD}/g' ${PLATFORM_SERVICES_FILE}
-sed -i 's/{{grafanaDatasourceLokiPassword}}/${GRAFANA_LOKI_PASSWORD}/g' ${PLATFORM_SERVICES_FILE}
-sed -i 's/{{grafanaAdminPassword}}/${GRAFANA_ADMIN_PASSWORD}/g' ${PLATFORM_SERVICES_FILE}
-sed -i 's/{{grafanaNotifierCatalystCommunityAlerts}}/${CATALYST_COMMUNITY_ALERTS_URL}/g' ${PLATFORM_SERVICES_FILE}
-sed -i 's/{{linkerdIssuerKeyPEM}}/${LINKERD_ISSUER_KEY_PEM}/g' ${PLATFORM_SERVICES_FILE}
-sed -i 's/{{promtailBasicAuthPassword}}/${PROMTAIL_PASS}/g' ${PLATFORM_SERVICES_FILE}
-
-sed -i 's/{{clusterName}}/${CLUSTER_NAME}/g' ${PROMETHEUS_FILE}
-
+curl -LsSf https://astral.sh/uv/0.5.14/install.sh | sh
 uv venv
 uv pip install pyyaml
 uv run python ${REACTORCIDE_REPOROOT}/ci/ci_replacements.py
-
 
 # Now Helm Chart
 helm upgrade --install --create-namespace --namespace kube-prometheus-stack prometheus -f ${PROMETHEUS_FILE} prometheus-community/kube-prometheus-stack --version 67.5.0
