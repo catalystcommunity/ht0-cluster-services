@@ -10,17 +10,17 @@ PROMETHEUS_FILE=os.environ.get("PROMETHEUS_FILE")
 
 # The replacements we'll be making
 PLATFORM_REPLACEMENTS = {
-    'cloudflareApiEmail': os.environ.get('CLOUDFLARE_API_EMAIL'),
-    'cloudflareApiToken': os.environ.get('CLOUDFLARE_API_TOKEN'),
-    'grafanaDatasourceCortexPassword': os.environ.get('GRAFANA_CORTEXT_PASSWORD'),
-    'grafanaDatasourceLokiPassword': os.environ.get('GRAFANA_LOKI_PASSWORD'),
-    'grafanaAdminPassword': os.environ.get('GRAFANA_ADMIN_PASSWORD'),
-    'grafanaNotifierCatalystCommunityAlerts': os.environ.get('CATALYST_COMMUNITY_ALERTS_URL'),
-    'linkerdIssuerKeyPEM': os.environ.get('LINKERD_ISSUER_KEY_PEM'),
-    'promtailBasicAuthPassword': os.environ.get('PROMTAIL_PASS'),
+    '{{cloudflareApiEmail}}': os.environ.get('CLOUDFLARE_API_EMAIL'),
+    '{{cloudflareApiToken}}': os.environ.get('CLOUDFLARE_API_TOKEN'),
+    '{{grafanaDatasourceCortexPassword}}': os.environ.get('GRAFANA_CORTEXT_PASSWORD'),
+    '{{grafanaDatasourceLokiPassword}}': os.environ.get('GRAFANA_LOKI_PASSWORD'),
+    '{{grafanaAdminPassword}}': os.environ.get('GRAFANA_ADMIN_PASSWORD'),
+    '{{grafanaNotifierCatalystCommunityAlerts}}': os.environ.get('CATALYST_COMMUNITY_ALERTS_URL'),
+    '{{linkerdIssuerKeyPEM}}': os.environ.get('LINKERD_ISSUER_KEY_PEM'),
+    '{{promtailBasicAuthPassword}}': os.environ.get('PROMTAIL_PASS'),
 }
 PROMETHEUS_REPLACEMENTS = {
-    'clusterName': os.environ.get('CLUSTER_NAME'),
+    '{{clusterName}}': os.environ.get('CLUSTER_NAME'),
 }
 
 
@@ -32,9 +32,14 @@ def replace_value_in_file(input_file_path, output_file_path, replacement_dict):
         for line in lines:
             for key, value in replacement_dict.items():
                 if key in line.strip():
-                    indent = line[: len(line) - len(line.lstrip())]
-                    new_lines = [indent + new_line for new_line in value.split("\n")]
-                    line = "\n".join(new_lines) + "\n"
+                    # if the line only contains the key, replace the entire line indented
+                    if key == line.strip():
+                      indent = line[: len(line) - len(line.lstrip())]
+                      new_lines = [indent + new_line for new_line in value.split("\n")]
+                      line = "\n".join(new_lines) + "\n"
+                    # otherwise, replace only the key in place
+                    else:
+                      line = line.replace(key, value)
             file.write(line)
 
 def validate_yaml(file_path):
@@ -47,13 +52,16 @@ def validate_yaml(file_path):
 
 def main():
     validSetup = True
+    # This is just stupid and ugly, but we're doing it since this is just a CI script
     if None in list(PLATFORM_REPLACEMENTS.values()) + list(PROMETHEUS_REPLACEMENTS.values()):
         print("Error: Missing environment variables.")
         validSetup = False
-        for key, value in PLATFORM_REPLACEMENTS.items() + PROMETHEUS_REPLACEMENTS.items():
+        for key, value in PLATFORM_REPLACEMENTS.items():
             if value is None:
                 print(f"Missing expected environent variable value for template key: {key}")
-    # This is just stupid and ugly, but we're doing it since this is just a CI script
+        for key, value in PROMETHEUS_REPLACEMENTS.items():
+            if value is None:
+                print(f"Missing expected environent variable value for template key: {key}")
     if None in [PLATFORM_SERVICES_TEMPLATE, PLATFORM_SERVICES_FILE, PROMETHEUS_TEMPLATE, PROMETHEUS_FILE]:
         print("Error: Missing environment variables.")
         for key, value in {
