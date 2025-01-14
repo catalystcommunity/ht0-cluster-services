@@ -68,175 +68,168 @@ cortex:
       grafana:$2y$05$Sr0FfQq0GGP3zHcsuyNQbObhxsjXUfaVv4eR47QAN8RaZ31hjUkhO
       ht0-k8s:$2y$05$62L3VeSY.PYZumHwgnCQp.YFTn.qx7vh9qV7kV1hLxcI9mvchp7pu
       todpunk:$2y$05$TN5T1NdOs8wjfgzNSoQq6.gco0W7QkPEhaxOPfinHPRMUNEjs9L1K
-  ingress:
-    annotations:
-      projectcontour.io/tls-cert-namespace: cert-manager
-    hosts:
-      - host: metrics.internal-service.com
-        paths:
-          - /
-    tls:
-      - secretName: wildcard-certificate
-        hosts:
-          - metrics.internal-service.com 
-  config:
-    blocks_storage:
-      backend: s3
-      s3:
-        bucket_name: ht0-metrics-bucket
-        endpoint: s3.us-west-000.backblazeb2.com
-    ruler_storage:
-      backend: s3
-      s3:
-        bucket_name: ht0-metrics-bucket
-        endpoint: s3.us-west-000.backblazeb2.com
-    alertmanager_storage:
-      backend: s3
-      s3:
-        bucket_name: ht0-metrics-bucket
-        endpoint: s3.us-west-000.backblazeb2.com
-  alertmanager:
-    env:
-      - name: AWS_ACCESS_KEY_ID
-        value: {{metricsBucketAccessKeyID}}
-      - name: AWS_SECRET_ACCESS_KEY
-        value: {{metricsBucketAccessKey}}
-    resources:
-      requests:
-        cpu: 10m
-        memory: 50Mi
-  distributor:
-    resources:
-      requests:
-        cpu: 10m
-        memory: 100Mi
-    autoscaling:
+  values:
+    ingress:
+      annotations:
+        projectcontour.io/tls-cert-namespace: cert-manager
+      hosts:
+        - host: metrics.internal-service.com
+          paths:
+            - /
+      tls:
+        - secretName: wildcard-certificate
+          hosts:
+            - metrics.internal-service.com 
+    config:
+      blocks_storage:
+        backend: s3
+        s3:
+          bucket_name: ht0-metrics-bucket
+          endpoint: s3.us-west-000.backblazeb2.com
+          access_key_id: {{metricsBucketAccessKeyID}}
+          secret_access_key: {{metricsBucketAccessKey}}
+      ruler_storage:
+        backend: s3
+        s3:
+          bucket_name: ht0-metrics-bucket
+          endpoint: s3.us-west-000.backblazeb2.com
+          access_key_id: {{metricsBucketAccessKeyID}}
+          secret_access_key: {{metricsBucketAccessKey}}
+      alertmanager_storage:
+        backend: s3
+        s3:
+          bucket_name: ht0-metrics-bucket
+          endpoint: s3.us-west-000.backblazeb2.com
+          access_key_id: {{metricsBucketAccessKeyID}}
+          secret_access_key: {{metricsBucketAccessKey}}
+    alertmanager:
+      resources:
+        requests:
+          cpu: 10m
+          memory: 50Mi
+    distributor:
+      resources:
+        requests:
+          cpu: 10m
+          memory: 100Mi
+      autoscaling:
+        enabled: true
+        minReplicas: 2
+        maxReplicas: 6
+        targetCPUUtilizationPercentage: 80
+        targetMemoryUtilizationPercentage: 80
+    ingester:
+      resources:
+        requests:
+          cpu: 10m
+          memory: 2Gi
+      autoscaling:
+        enabled: true
+        minReplicas: 3
+        maxReplicas: 9
+        targetMemoryUtilizationPercentage: 80
+      persistentVolume:
+        size: 20Gi
+    ruler:
+      resources:
+        requests:
+          cpu: 10m
+          memory: 50Mi
+    querier:
+      env:
+        - name: AWS_ACCESS_KEY_ID
+          value: {{metricsBucketAccessKeyID}}
+        - name: AWS_SECRET_ACCESS_KEY
+          value: {{metricsBucketAccessKey}}
+      resources:
+        requests:
+          cpu: 10m
+          memory: 500Mi
+      autoscaling:
+        enabled: true
+        minReplicas: 2
+        maxReplicas: 6
+        targetCPUUtilizationPercentage: 80
+        targetMemoryUtilizationPercentage: 80
+    query_frontend:
+      replicas: 2
+      resources:
+        requests:
+          cpu: 10m
+          memory: 100Mi
+    nginx:
+      resources:
+        requests:
+          cpu: 10m
+          memory: 100Mi
+      autoscaling:
+        enabled: true
+        minReplicas: 2
+        maxReplicas: 6
+        targetCPUUtilizationPercentage: 80
+        targetMemoryUtilizationPercentage: 80
+    store_gateway:
+      env:
+        - name: AWS_ACCESS_KEY_ID
+          value: {{metricsBucketAccessKeyID}}
+        - name: AWS_SECRET_ACCESS_KEY
+          value: {{metricsBucketAccessKey}}
+      resources:
+        requests:
+          cpu: 10m
+          memory: 250Mi
+      persistentVolume:
+        size: 20Gi
+    compactor:
       enabled: true
-      minReplicas: 2
-      maxReplicas: 6
-      targetCPUUtilizationPercentage: 80
-      targetMemoryUtilizationPercentage: 80
-  ingester:
-    resources:
-      requests:
-        cpu: 10m
-        memory: 2Gi
-    autoscaling:
-      enabled: true
-      minReplicas: 3
-      maxReplicas: 9
-      targetMemoryUtilizationPercentage: 80
-    persistentVolume:
-      size: 20Gi
-  ruler:
-    env:
-      - name: AWS_ACCESS_KEY_ID
-        value: {{metricsBucketAccessKeyID}}
-      - name: AWS_SECRET_ACCESS_KEY
-        value: {{metricsBucketAccessKey}}
-    resources:
-      requests:
-        cpu: 10m
-        memory: 50Mi
-  querier:
-    env:
-      - name: AWS_ACCESS_KEY_ID
-        value: {{metricsBucketAccessKeyID}}
-      - name: AWS_SECRET_ACCESS_KEY
-        value: {{metricsBucketAccessKey}}
-    resources:
-      requests:
-        cpu: 10m
-        memory: 500Mi
-    autoscaling:
-      enabled: true
-      minReplicas: 2
-      maxReplicas: 6
-      targetCPUUtilizationPercentage: 80
-      targetMemoryUtilizationPercentage: 80
-  query_frontend:
-    replicas: 2
-    resources:
-      requests:
-        cpu: 10m
-        memory: 100Mi
-  nginx:
-    resources:
-      requests:
-        cpu: 10m
-        memory: 100Mi
-    autoscaling:
-      enabled: true
-      minReplicas: 2
-      maxReplicas: 6
-      targetCPUUtilizationPercentage: 80
-      targetMemoryUtilizationPercentage: 80
-  store_gateway:
-    env:
-      - name: AWS_ACCESS_KEY_ID
-        value: {{metricsBucketAccessKeyID}}
-      - name: AWS_SECRET_ACCESS_KEY
-        value: {{metricsBucketAccessKey}}
-    resources:
-      requests:
-        cpu: 10m
-        memory: 250Mi
-    persistentVolume:
-      size: 20Gi
-  compactor:
-    enabled: true
-    replicas: 1
-    serviceMonitor:
-      enabled: true
-    resources:
-      requests:
-        cpu: 10m
-        memory: 500Mi
-    persistentVolume:
-      size: 20Gi
-  memcached-blocks-index:
-    replicaCount: 2
-    resources:
-      requests:
-        cpu: 10m
-        memory: 256Mi
-    env:
-      - name: MEMCACHED_CACHE_SIZE
-        value: "256"
-      - name: MEMCACHED_MAX_CONNECTIONS
-        value: "1024"
-      - name: MEMCACHED_THREADS
-        value: "4"
-  memcached-blocks:
-    replicaCount: 2
-    resources:
-      requests:
-        cpu: 10m
-        memory: 256Mi
-    env:
-      - name: AWS_ACCESS_KEY_ID
-        value: {{metricsBucketAccessKeyID}}
-      - name: AWS_SECRET_ACCESS_KEY
-        value: {{metricsBucketAccessKey}}
-      - name: MEMCACHED_CACHE_SIZE
-        value: "256"
-      - name: MEMCACHED_MAX_CONNECTIONS
-        value: "1024"
-      - name: MEMCACHED_THREADS
-        value: "4"
-  memcached-blocks-metadata:
-    replicaCount: 2
-    resources:
-      requests:
-        cpu: 10m
-        memory: 256Mi
-    env:
-      - name: MEMCACHED_CACHE_SIZE
-        value: "256"
-      - name: MEMCACHED_MAX_CONNECTIONS
-        value: "1024"
-      - name: MEMCACHED_THREADS
-        value: "4"
+      replicas: 1
+      serviceMonitor:
+        enabled: true
+      resources:
+        requests:
+          cpu: 10m
+          memory: 500Mi
+      persistentVolume:
+        size: 20Gi
+    memcached-blocks-index:
+      replicaCount: 2
+      resources:
+        requests:
+          cpu: 10m
+          memory: 256Mi
+      extraEnvVars:
+        - name: MEMCACHED_CACHE_SIZE
+          value: "256"
+        - name: MEMCACHED_MAX_CONNECTIONS
+          value: "1024"
+        - name: MEMCACHED_THREADS
+          value: "4"
+    memcached-blocks:
+      replicaCount: 2
+      resources:
+        requests:
+          cpu: 10m
+          memory: 256Mi
+      extraEnvVars:
+        - name: MEMCACHED_CACHE_SIZE
+          value: "256"
+        - name: MEMCACHED_MAX_CONNECTIONS
+          value: "1024"
+        - name: MEMCACHED_THREADS
+          value: "4"
+    memcached-blocks-metadata:
+      replicaCount: 2
+      resources:
+        requests:
+          cpu: 10m
+          memory: 256Mi
+      extraEnvVars:
+        - name: MEMCACHED_CACHE_SIZE
+          value: "256"
+        - name: MEMCACHED_MAX_CONNECTIONS
+          value: "1024"
+        - name: MEMCACHED_THREADS
+          value: "4"
 externalDns:
   enabled: true
   targetRevision: "~8.7.0"
