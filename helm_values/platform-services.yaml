@@ -68,203 +68,175 @@ cortex:
       grafana:$2y$05$Sr0FfQq0GGP3zHcsuyNQbObhxsjXUfaVv4eR47QAN8RaZ31hjUkhO
       ht0-k8s:$2y$05$62L3VeSY.PYZumHwgnCQp.YFTn.qx7vh9qV7kV1hLxcI9mvchp7pu
       todpunk:$2y$05$TN5T1NdOs8wjfgzNSoQq6.gco0W7QkPEhaxOPfinHPRMUNEjs9L1K
-    ingress:
-      annotations:
-        projectcontour.io/tls-cert-namespace: cert-manager
-      hosts:
-        - host: metrics.internal-service.com
-          paths:
-            - /
-      tls:
-        - secretName: wildcard-certificate
-          hosts:
-            - metrics.internal-service.com 
-    config:
-      blocks_storage:
-        backend: s3
-        s3:
-          bucket_name: ht0-metrics-bucket
-          endpoint: s3.us-west-000.backblazeb2.com
-      ruler_storage:
-        backend: s3
-        s3:
-          bucket_name: ht0-metrics-bucket
-          endpoint: s3.us-west-000.backblazeb2.com
-      alertmanager_storage:
-        backend: s3
-        s3: 
-          bucket_name: ht0-metrics-bucket
-          endpoint: s3.us-west-000.backblazeb2.com
-    alertmanager:
-      env:
-        - name: AWS_ACCESS_KEY_ID
-          valueFrom:
-            secretKeyRef:
-              name: metricsbucketaccess
-              key: access_key_id
-              optional: false 
-        - name: AWS_SECRET_ACCESS_KEY
-          valueFrom:
-            secretKeyRef:
-              name: metricsbucketaccess
-              key: secret_access_key
-              optional: false
-      resources:
-        requests:
-          cpu: 10m
-          memory: 50Mi
-    distributor:
-      resources:
-        requests:
-          cpu: 10m
-          memory: 100Mi
-      autoscaling:
-        enabled: true
-        minReplicas: 2
-        maxReplicas: 6
-        targetCPUUtilizationPercentage: 80
-        targetMemoryUtilizationPercentage: 80
-    ingester:
-      resources:
-        requests:
-          cpu: 10m
-          memory: 2Gi
-      autoscaling:
-        enabled: true
-        minReplicas: 3
-        maxReplicas: 9
-        targetMemoryUtilizationPercentage: 80
-      persistentVolume:
-        size: 20Gi
-    ruler:
-      env:
-        - name: AWS_ACCESS_KEY_ID
-          valueFrom:
-            secretKeyRef:
-              name: metricsbucketaccess
-              key: access_key_id
-              optional: false 
-        - name: AWS_SECRET_ACCESS_KEY
-          valueFrom:
-            secretKeyRef:
-              name: metricsbucketaccess
-              key: secret_access_key
-              optional: false
-      resources:
-        requests:
-          cpu: 10m
-          memory: 50Mi
-    querier:
-      env:
-        - name: AWS_ACCESS_KEY_ID
-          valueFrom:
-            secretKeyRef:
-              name: metricsbucketaccess
-              key: access_key_id
-              optional: false 
-        - name: AWS_SECRET_ACCESS_KEY
-          valueFrom:
-            secretKeyRef:
-              name: metricsbucketaccess
-              key: secret_access_key
-              optional: false
-      resources: 
-        requests:
-          cpu: 10m
-          memory: 500Mi
-      autoscaling:
-        enabled: true
-        minReplicas: 2
-        maxReplicas: 6
-        targetCPUUtilizationPercentage: 80
-        targetMemoryUtilizationPercentage: 80
-    query_frontend:
-      replicas: 2
-      resources:
-        requests:
-          cpu: 10m
-          memory: 100Mi
-    nginx:
-      resources:
-        requests:
-          cpu: 10m
-          memory: 100Mi
-      autoscaling:
-        enabled: true
-        minReplicas: 2
-        maxReplicas: 6
-        targetCPUUtilizationPercentage: 80
-        targetMemoryUtilizationPercentage: 80
-    store_gateway:
-      env:
-        - name: AWS_ACCESS_KEY_ID
-          valueFrom:
-            secretKeyRef:
-              name: metricsbucketaccess
-              key: access_key_id
-              optional: false 
-        - name: AWS_SECRET_ACCESS_KEY
-          valueFrom:
-            secretKeyRef:
-              name: metricsbucketaccess
-              key: secret_access_key
-              optional: false
-      resources:
-        requests:
-          cpu: 10m
-          memory: 250Mi
-      persistentVolume:
-        size: 20Gi
-    compactor:
+  ingress:
+    annotations:
+      projectcontour.io/tls-cert-namespace: cert-manager
+    hosts:
+      - host: metrics.internal-service.com
+        paths:
+          - /
+    tls:
+      - secretName: wildcard-certificate
+        hosts:
+          - metrics.internal-service.com 
+  config:
+    blocks_storage:
+      backend: s3
+      s3:
+        bucket_name: ht0-metrics-bucket
+        endpoint: s3.us-west-000.backblazeb2.com
+    ruler_storage:
+      backend: s3
+      s3:
+        bucket_name: ht0-metrics-bucket
+        endpoint: s3.us-west-000.backblazeb2.com
+    alertmanager_storage:
+      backend: s3
+      s3:
+        bucket_name: ht0-metrics-bucket
+        endpoint: s3.us-west-000.backblazeb2.com
+  alertmanager:
+    env:
+      - name: AWS_ACCESS_KEY_ID
+        value: {{metricsBucketAccessKeyID}}
+      - name: AWS_SECRET_ACCESS_KEY
+        value: {{metricsBucketAccessKey}}
+    resources:
+      requests:
+        cpu: 10m
+        memory: 50Mi
+  distributor:
+    resources:
+      requests:
+        cpu: 10m
+        memory: 100Mi
+    autoscaling:
       enabled: true
-      replicas: 1
-      serviceMonitor:
-        enabled: true
-      resources:
-        requests:
-          cpu: 10m
-          memory: 500Mi
-      persistentVolume:
-        size: 20Gi
-    memcached-blocks-index:
-      replicaCount: 2
-      resources:
-        requests:
-          cpu: 10m
-          memory: 256Mi
-      extraEnv:
-        - name: MEMCACHED_CACHE_SIZE
-          value: "256"
-        - name: MEMCACHED_MAX_CONNECTIONS
-          value: "1024"
-        - name: MEMCACHED_THREADS
-          value: "4"
-    memcached-blocks:
-      replicaCount: 2
-      resources:
-        requests:
-          cpu: 10m
-          memory: 256Mi
-      extraEnv:
-        - name: MEMCACHED_CACHE_SIZE
-          value: "256"
-        - name: MEMCACHED_MAX_CONNECTIONS
-          value: "1024"
-        - name: MEMCACHED_THREADS
-          value: "4"
-    memcached-blocks-metadata:
-      replicaCount: 2
-      resources:
-        requests:
-          cpu: 10m
-          memory: 256Mi
-      extraEnv:
-        - name: MEMCACHED_CACHE_SIZE
-          value: "256"
-        - name: MEMCACHED_MAX_CONNECTIONS
-          value: "1024"
-        - name: MEMCACHED_THREADS
-          value: "4"
+      minReplicas: 2
+      maxReplicas: 6
+      targetCPUUtilizationPercentage: 80
+      targetMemoryUtilizationPercentage: 80
+  ingester:
+    resources:
+      requests:
+        cpu: 10m
+        memory: 2Gi
+    autoscaling:
+      enabled: true
+      minReplicas: 3
+      maxReplicas: 9
+      targetMemoryUtilizationPercentage: 80
+    persistentVolume:
+      size: 20Gi
+  ruler:
+    env:
+      - name: AWS_ACCESS_KEY_ID
+        value: {{metricsBucketAccessKeyID}}
+      - name: AWS_SECRET_ACCESS_KEY
+        value: {{metricsBucketAccessKey}}
+    resources:
+      requests:
+        cpu: 10m
+        memory: 50Mi
+  querier:
+    env:
+      - name: AWS_ACCESS_KEY_ID
+        value: {{metricsBucketAccessKeyID}}
+      - name: AWS_SECRET_ACCESS_KEY
+        value: {{metricsBucketAccessKey}}
+    resources:
+      requests:
+        cpu: 10m
+        memory: 500Mi
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 6
+      targetCPUUtilizationPercentage: 80
+      targetMemoryUtilizationPercentage: 80
+  query_frontend:
+    replicas: 2
+    resources:
+      requests:
+        cpu: 10m
+        memory: 100Mi
+  nginx:
+    resources:
+      requests:
+        cpu: 10m
+        memory: 100Mi
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 6
+      targetCPUUtilizationPercentage: 80
+      targetMemoryUtilizationPercentage: 80
+  store_gateway:
+    env:
+      - name: AWS_ACCESS_KEY_ID
+        value: {{metricsBucketAccessKeyID}}
+      - name: AWS_SECRET_ACCESS_KEY
+        value: {{metricsBucketAccessKey}}
+    resources:
+      requests:
+        cpu: 10m
+        memory: 250Mi
+    persistentVolume:
+      size: 20Gi
+  compactor:
+    enabled: true
+    replicas: 1
+    serviceMonitor:
+      enabled: true
+    resources:
+      requests:
+        cpu: 10m
+        memory: 500Mi
+    persistentVolume:
+      size: 20Gi
+  memcached-blocks-index:
+    replicaCount: 2
+    resources:
+      requests:
+        cpu: 10m
+        memory: 256Mi
+    env:
+      - name: MEMCACHED_CACHE_SIZE
+        value: "256"
+      - name: MEMCACHED_MAX_CONNECTIONS
+        value: "1024"
+      - name: MEMCACHED_THREADS
+        value: "4"
+  memcached-blocks:
+    replicaCount: 2
+    resources:
+      requests:
+        cpu: 10m
+        memory: 256Mi
+    env:
+      - name: AWS_ACCESS_KEY_ID
+        value: {{metricsBucketAccessKeyID}}
+      - name: AWS_SECRET_ACCESS_KEY
+        value: {{metricsBucketAccessKey}}
+      - name: MEMCACHED_CACHE_SIZE
+        value: "256"
+      - name: MEMCACHED_MAX_CONNECTIONS
+        value: "1024"
+      - name: MEMCACHED_THREADS
+        value: "4"
+  memcached-blocks-metadata:
+    replicaCount: 2
+    resources:
+      requests:
+        cpu: 10m
+        memory: 256Mi
+    env:
+      - name: MEMCACHED_CACHE_SIZE
+        value: "256"
+      - name: MEMCACHED_MAX_CONNECTIONS
+        value: "1024"
+      - name: MEMCACHED_THREADS
+        value: "4"
 externalDns:
   enabled: true
   targetRevision: "~8.7.0"
@@ -303,17 +275,14 @@ grafana:
       contactpoints.yaml:
         apiVersion: 1
         contactPoints:
-        - orgId: 1
-          name: engineering
+        - name: engineering
           receivers:
-          - uid: catalyst-squad-slack
-            type: slack
+          - uid: catalyst-community-discord
+            type: discord
             settings:
               url: "{{grafanaNotifierCatalystCommunityAlerts}}"
-              title: |
-                {{`{{ template "custom_slack_title" . }}`}}
-              text: |
-                {{`{{ template "custom_slack_text" . }}`}}
+              message: |
+                {{`{{ template "default.message" . }}`}}
       notification-policies.yaml:
         apiVersion: 1
         policies:
@@ -324,14 +293,13 @@ grafana:
           group_wait: 60s
           group_interval: 5m
           repeat_interval: 24h
+    testing: |
       notifier-templates.yaml:
         apiVersion: 1
         templates:
-          - name: custom_slack_title
+          - name: custom_message
             template: |
               {{`[{{- .Status | toUpper -}}{{- if eq .Status "firing" }} x {{ .Alerts.Firing | len -}}{{- end }}] | {{ .ht0-k8sLabels.alertname -}}`}}
-          - name: custom_slack_text
-            template: |
               {{`{{- range .Alerts }}`}}
               {{`*Status*: {{ .Status }}`}}
               {{`{{- if gt (len .Annotations) 0 }}`}}
@@ -426,17 +394,9 @@ loki:
     ingester:
       extraEnv:
         - name: AWS_ACCESS_KEY_ID
-          valueFrom:
-            secretKeyRef:
-              name: metricsbucketaccess
-              key: access_key_id
-              optional: false 
+          value: {{metricsBucketAccessKeyID}}
         - name: AWS_SECRET_ACCESS_KEY
-          valueFrom:
-            secretKeyRef:
-              name: metricsbucketaccess
-              key: secret_access_key
-              optional: false
+          value: {{metricsBucketAccessKey}}
       replicas: 1
       maxUnavailable: 1
       resources:
@@ -458,17 +418,9 @@ loki:
     querier:
       extraEnv:
         - name: AWS_ACCESS_KEY_ID
-          valueFrom:
-            secretKeyRef:
-              name: metricsbucketaccess
-              key: access_key_id
-              optional: false 
+          value: {{metricsBucketAccessKeyID}}
         - name: AWS_SECRET_ACCESS_KEY
-          valueFrom:
-            secretKeyRef:
-              name: metricsbucketaccess
-              key: secret_access_key
-              optional: false
+          value: {{metricsBucketAccessKey}}
       autoscaling:
         enabled: false
         minReplicas: 1
@@ -524,6 +476,8 @@ promtail:
           basic_auth:
             username: ht0-k8s
             password: "{{promtailBasicAuthPassword}}"
+pvcAutoresizer:
+  enabled: false
 sentry:
   enabled: false
 storageClasses:
@@ -541,5 +495,28 @@ velero:
   enabled: false
 awsEcrCreds:
   enabled: false
+  targetRevision: ">=1.0.0"
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+  values:
+    aws:
+      region: us-west-2
+      account: 123456780
+      accessKeyID: NOTREAL
+      secretAccessKey: NOTREAL
 zalandoPostgresOperator:
   enabled: true
+pvcAutoresizer:
+  enabled: false

@@ -15,6 +15,8 @@ echo "CATALYST_COMMUNITY_ALERTS_URL=\"${CATALYST_COMMUNITY_ALERTS_URL}\"" >> job
 echo "LINKERD_ISSUER_KEY_PEM=\"${LINKERD_ISSUER_KEY_PEM}\"" >> jobenv.sh
 echo "PROMTAIL_PASS=\"${PROMTAIL_PASS}\"" >> jobenv.sh
 echo "CLUSTER_NAME=\"${CLUSTER_NAME}\"" >> jobenv.sh
+echo "METRICS_BUCKET_ACCESS_KEY_ID=\"${METRICS_BUCKET_ACCESS_KEY_ID}\"" >> jobenv.sh
+echo "METRICS_BUCKET_ACCESS_KEY=\"${METRICS_BUCKET_ACCESS_KEY}\"" >> jobenv.sh
 
 touch cisshkey
 echo "${CI_SSH_KEY}" >> cisshkey

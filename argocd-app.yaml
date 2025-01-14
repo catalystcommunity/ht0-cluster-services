@@ -35,7 +35,6 @@ spec:
               name: "ArgoCD Helm Repository"
               type: "helm"
               url: "https://argoproj.github.io/argo-helm"
-
         controller:
           logLevel: error
           args:
