@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
 echo "I am in CI in the innner root job script"
-set -x
 
 export PLATFORM_SERVICES_TEMPLATE="${REACTORCIDE_REPOROOT}/helm_values/platform-services.yaml"
 export PLATFORM_SERVICES_FILE="${REACTORCIDE_REPOROOT}/helm_values/ciresult_platform-services.yaml"
@@ -30,4 +29,4 @@ uv run python ${REACTORCIDE_REPOROOT}/ci/ci_replacements.py
 # Now Helm Chart
 helm upgrade --install --create-namespace --namespace kube-prometheus-stack prometheus -f ${PROMETHEUS_FILE} prometheus-community/kube-prometheus-stack --version 67.5.0
 
-helm upgrade --install --create-namespace platform-services -f ${PLATFORM_SERVICES_FILE} catalyst-helm/platform-services --version 2.1.1
+helm upgrade --install --create-namespace platform-services -f ${PLATFORM_SERVICES_FILE} catalyst-helm/platform-services --version 2.3.0

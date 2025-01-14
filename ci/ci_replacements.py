@@ -18,6 +18,8 @@ PLATFORM_REPLACEMENTS = {
     '{{grafanaNotifierCatalystCommunityAlerts}}': os.environ.get('CATALYST_COMMUNITY_ALERTS_URL'),
     '{{linkerdIssuerKeyPEM}}': os.environ.get('LINKERD_ISSUER_KEY_PEM'),
     '{{promtailBasicAuthPassword}}': os.environ.get('PROMTAIL_PASS'),
+    '{{metricsBucketAccessKeyID}}': os.environ.get('METRICS_BUCKET_ACCESS_KEY_ID'),
+    '{{metricsBucketAccessKey}}': os.environ.get('METRICS_BUCKET_ACCESS_KEY'),
 }
 PROMETHEUS_REPLACEMENTS = {
     '{{clusterName}}': os.environ.get('CLUSTER_NAME'),
