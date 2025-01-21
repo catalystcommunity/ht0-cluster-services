@@ -19,6 +19,10 @@ certManager:
       - '*.internal-service.com'
       - 'opsisdead.com'
       - '*.opsisdead.com'
+      - 'todandlorna.com'
+      - '*.todandlorna.com'
+      - 'mybuddykeith.com'
+      - '*.mybuddykeith.com'
     organizations:
       - Catalyst Community
 clusterAutoscaler:
