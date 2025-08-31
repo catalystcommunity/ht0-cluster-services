@@ -19,6 +19,8 @@ certManager:
       - '*.internal-service.com'
       - 'opsisdead.com'
       - '*.opsisdead.com'
+      - 'clubdoers.com'
+      - '*.clubdoers.com'
       - 'todandlorna.com'
       - '*.todandlorna.com'
       - 'mybuddykeith.com'
